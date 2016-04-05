@@ -47,6 +47,7 @@ def conn(mocker):
             []))  # topics
     conn.blacked_out.return_value = False
     conn.connect.side_effect = lambda: conn.state
-    conn.connecting = lambda: conn.connect() is ConnectionStates.CONNECTING
+    conn.connecting = lambda: conn.connect() in (ConnectionStates.CONNECTING,
+                                                 ConnectionStates.HANDSHAKE)
     conn.connected = lambda: conn.connect() is ConnectionStates.CONNECTED
     return conn
