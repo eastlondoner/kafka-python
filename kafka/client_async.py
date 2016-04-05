@@ -396,6 +396,17 @@ class KafkaClient(object):
         fds.append(self._wake_r)
         ready, _, _ = select.select(fds, [], [], timeout)
 
+        # Check for additional pending SSL bytes
+        if self.config['security_protocol'] in ('SSL', 'SASL_SSL'):
+            # TODO: optimize
+            for conn in self._conns.values():
+                if conn.state not in (ConnectionStates.CONNECTED,
+                                      ConnectionStates.HANDSHAKE):
+                    continue
+                sock = conn._sock
+                if sock not in ready and sock.pending():
+                    ready.append(sock)
+
         responses = []
         for sock in ready:
             if sock == self._wake_r:
